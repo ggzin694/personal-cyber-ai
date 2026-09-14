@@ -1,5 +1,7 @@
 package com.ggzin694.personalcyberai;
 
+import android.app.assist.AssistContent;
+import android.app.assist.AssistStructure;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,11 +12,22 @@ public class CyberVoiceInteractionSession extends VoiceInteractionSession {
         super(context);
     }
 
+    private void openMainActivity() {
+        Intent launch = new Intent(getContext(), MainActivity.class);
+        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        getContext().startActivity(launch);
+    }
+
     @Override
     public void onShow(Bundle args, int showFlags) {
         super.onShow(args, showFlags);
-        Intent launch = new Intent(getContext(), MainActivity.class);
-        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        getContext().startActivity(launch);
+        openMainActivity();
+    }
+
+    @Override
+    public void onHandleAssist(Bundle data, AssistStructure structure, AssistContent content) {
+        openMainActivity();
     }
 }
