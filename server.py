@@ -45,6 +45,13 @@ def agent_by_id(agent_id: str) -> dict:
 
 def route_message(message: str) -> dict:
     text = message.casefold()
+    # Detecta snippets compartilhados mesmo sem comando explícito.
+    code_signals = (
+        r"(^|\n)\s*(def |class |import |from .* import |#include|function |const |let |var )",
+        r"(print\s*\(|console\.log\s*\(|\b(senha|password|secret|token)\s*=)"
+    )
+    if any(re.search(pattern, text) for pattern in code_signals):
+        return agent_by_id("code_guard")
     matches = []
     for agent in AGENTS[1:]:
         score = sum(1 for word in agent["keywords"] if word in text)
@@ -67,7 +74,6 @@ def normalize_command(message: str) -> tuple[str, bool]:
     return text, False
 
 def fallback_reply(message: str, agent: dict, provider_error: str | None = None) -> str:
-    """Provide a useful defensive answer even when the language provider is unavailable."""
     text = message.casefold()
     provider_note = (
         " A OpenAI está temporariamente indisponível por limite de uso, créditos ou cobrança; esta triagem foi feita localmente."
