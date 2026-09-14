@@ -52,6 +52,19 @@ O arquivo `render.yaml` está preparado para um Web Service Python. No Render:
 5. valide `/api/health` após o deploy;
 6. teste uma pergunta defensiva antes de usar qualquer ação.
 
+## Acesso global no Android
+
+A aplicação também funciona como uma PWA instalável no celular:
+
+1. abra o endereço público no Chrome ou outro navegador compatível;
+2. use o menu do navegador para adicionar à tela inicial/instalar;
+3. para enviar um link ou texto de qualquer aplicativo, use **Compartilhar → Personal Cyber AI**;
+4. a central recebe o conteúdo e abre um comando com o prefixo global `•`.
+
+Dentro da central, comandos como `• analisar este link` ou `• revisar este código` são normalizados pelo backend e encaminhados ao agente adequado. O manifesto também registra o atalho de comando `•` e o alvo de compartilhamento do Android.
+
+Essa integração não lê mensagens de outros aplicativos nem monitora o celular em segundo plano. Ela usa os mecanismos explícitos do Android — instalação na tela inicial e menu Compartilhar — preservando a privacidade e as permissões do usuário.
+
 ## Limites desta primeira versão
 
 A versão inicial não realiza varredura automática de dispositivos, não executa arquivos, não bloqueia ameaças sozinha e não publica alterações sem confirmação. Essas funções exigem conectores específicos, escopo autorizado e revisão adicional.

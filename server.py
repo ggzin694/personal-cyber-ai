@@ -16,6 +16,7 @@ HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "10000"))
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
+COMMAND_PREFIX = "•"
 
 AGENTS = [
     {
@@ -107,8 +108,16 @@ def needs_approval(agent: dict, message: str) -> bool:
     return bool(re.search(r"\b(enviar|publicar|excluir|apagar|bloquear|isolar|comprar|alterar produção)\b", message.casefold()))
 
 
-def fallback_reply(message: str, agent: dict) -> str:
-    if agent["id"] == "central":
+def normalize_command(message: str) -> tuple[str, bool]:
+    """Remove the optional global mobile prefix while preserving the command signal."""
+    text = message.strip()
+    if text.startswith(COMMAND_PREFIX):
+        return text[len(COMMAND_PREFIX):].strip(), True
+    return text, False
+
+
+def fallback_reply(message: str, agent: dict, provider_error: str | None = None) -> str:
+    if agent["id"] == "central": 
         return (
             "Sou a CENTRAL do Personal Cyber AI. Posso encaminhar seu pedido para "
             "VIRUS_GUARD, THREAT_ANALYST, WEB_SCOUT, CODE_GUARD, FILE_GUARD ou ACTION_AGENT. "
@@ -119,10 +128,25 @@ def fallback_reply(message: str, agent: dict) -> str:
             "Preparei a tarefa para o ACTION_AGENT. Antes de qualquer ação externa, "
             "preciso confirmar o alvo autorizado, o efeito esperado e uma forma de desfazer a mudança."
         )
+    if provider_error == "http_429":
+        return (
+            f"A solicitação foi encaminhada para {agent['name']}. "
+            "A OpenAI recusou esta tentativa por limite de uso, créditos ou cobrança da API. "
+            "O fallback local continua ativo e nenhuma ação externa foi executada."
+        )
+    if provider_error == "network_error":
+        return (
+            f"A solicitação foi encaminhada para {agent['name']}, mas o provedor de IA não respondeu. "
+            "O fallback local continua ativo e nenhuma ação externa foi executada."
+        )
+    if provider_error == "missing_api_key":
+        return (
+            f"A solicitação foi encaminhada para {agent['name']}. "
+            "A chave OpenAI não está configurada; o fallback local continua ativo."
+        )
     return (
         f"A solicitação foi encaminhada para {agent['name']}. "
-        "A integração com o provedor de IA ainda precisa de uma chave OpenAI válida; "
-        "por enquanto, posso registrar a triagem e indicar o próximo passo seguro."
+        "O fallback local registrou a triagem e indicou o próximo passo seguro."
     )
 
 
@@ -219,13 +243,18 @@ class Handler(BaseHTTPRequestHandler):
                 "provider": "openai" if OPENAI_API_KEY else "local_fallback",
                 "model": OPENAI_MODEL if OPENAI_API_KEY else None,
                 "agents": len(AGENTS),
+                "command_prefix": COMMAND_PREFIX,
                 "time": now(),
             })
         elif path == "/api/agents":
             self.send_json({"agents": [{k: v for k, v in a.items() if k != "keywords"} for a in AGENTS]})
         elif path in ("/", "/index.html"):
             self.send_file(STATIC / "index.html", "text/html; charset=utf-8")
-        elif path.startswith("/static/"):
+        elif path == "/manifest.webmanifest":
+            self.send_file(ROOT / "manifest.webmanifest", "application/manifest+json; charset=utf-8")
+        elif path == "/sw.js":
+            self.send_file(STATIC / "sw.js", "text/javascript; charset=utf-8")
+        elif path.startswith("/static/"): 
             relative = Path(path.removeprefix("/static/"))
             if ".." in relative.parts:
                 self.send_error(404)
@@ -241,19 +270,21 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             payload = self.body()
-            message = str(payload.get("message", "")).strip()
+            raw_message = str(payload.get("message", "")).strip()
+            message, prefixed = normalize_command(raw_message)
             if not message or len(message) > 5000:
                 self.send_json({"error": "message_invalid"}, 400)
                 return
             agent = route_message(message)
             requires_approval = needs_approval(agent, message)
             answer, provider_error = openai_reply(message, agent)
-            answer = answer or fallback_reply(message, agent)
+            answer = answer or fallback_reply(message, agent, provider_error)
             self.send_json({
                 "status": "completed",
                 "agent": {k: v for k, v in agent.items() if k != "keywords"},
                 "provider": "openai" if provider_error is None and OPENAI_API_KEY else "local_fallback",
                 "provider_error": provider_error,
+                "command_prefix": COMMAND_PREFIX if prefixed else None,
                 "requires_approval": requires_approval,
                 "message": answer,
             })
