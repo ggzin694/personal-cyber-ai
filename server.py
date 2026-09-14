@@ -76,12 +76,12 @@ def normalize_command(message: str) -> tuple[str, bool]:
 def quick_reply(message: str) -> str | None:
     command = message.casefold().strip()
     if command in ("ajuda", "comandos", "menu"):
-        return "Comandos rápidos: ajuda, agentes, status, revisar link, revisar arquivo, revisar código e plano de ação. Não executo ações externas sem sua aprovação."
+        return "Comandos rápidos: ajuda, agentes, status, revisar link, revisar arquivo, revisar mensagem, revisar código e plano de ação. Não executo ações externas sem sua aprovação."
     if command in ("agentes", "listar agentes"):
         return "Agentes disponíveis: CENTRAL, VIRUS_GUARD, THREAT_ANALYST, WEB_SCOUT, CODE_GUARD, FILE_GUARD e ACTION_AGENT."
     if command in ("status", "verificar status"):
         return "Status local: Personal Cyber AI ativo; detecção automática de código habilitada; ações externas continuam exigindo aprovação humana."
-    return ("Triagem local de link: envie o endereço sem abrir; verificarei domínio, sinais de phishing e próximos passos seguros." if command == "revisar link" else "Triagem local de arquivo: envie o arquivo sem executar; verificarei tipo, nome, extensão, sinais de risco e próximos passos seguros." if command == "revisar arquivo" else None)
+    return ("Triagem local de link: envie o endereço sem abrir; verificarei domínio, sinais de phishing e próximos passos seguros." if command == "revisar link" else "Triagem local de arquivo: envie o arquivo sem executar; verificarei tipo, nome, extensão, sinais de risco e próximos passos seguros." if command == "revisar arquivo" else "Triagem local de mensagem: cole o texto sem clicar em links; verificarei urgência artificial, pedido de senha ou código, remetente, promessa incomum e próximos passos seguros." if command in ("revisar mensagem", "mensagem suspeita") else None)
 
 def fallback_reply(message: str, agent: dict, provider_error: str | None = None) -> str:
     """Provide a useful defensive answer even when the language provider is unavailable."""
