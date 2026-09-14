@@ -81,7 +81,7 @@ def quick_reply(message: str) -> str | None:
         return "Agentes disponíveis: CENTRAL, VIRUS_GUARD, THREAT_ANALYST, WEB_SCOUT, CODE_GUARD, FILE_GUARD e ACTION_AGENT."
     if command in ("status", "verificar status"):
         return "Status local: Personal Cyber AI ativo; detecção automática de código habilitada; ações externas continuam exigindo aprovação humana."
-    return None
+    if command == "revisar link": return "Triagem local de link: envie o endereço sem abrir; verificarei domínio, sinais de phishing e próximos passos seguros."; return None
 
 def fallback_reply(message: str, agent: dict, provider_error: str | None = None) -> str:
     """Provide a useful defensive answer even when the language provider is unavailable."""
