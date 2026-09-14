@@ -45,6 +45,8 @@ def agent_by_id(agent_id: str) -> dict:
 
 def route_message(message: str) -> dict:
     text = message.casefold()
+    if text.lstrip().startswith(("revisar mensagem", "mensagem suspeita")):
+        return agent_by_id("threat_analyst")
     # Detecta snippets compartilhados mesmo sem comando explícito.
     code_signals = (
         r"(^|\n)\s*(def |class |import |from .* import |#include|function |const |let |var )",
