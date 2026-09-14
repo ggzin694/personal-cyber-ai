@@ -17,7 +17,7 @@ public class CyberVoiceInteractionSession extends VoiceInteractionSession {
         launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_CLEAR_TOP
                 | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        getContext().startActivity(launch);
+        startAssistantActivity(launch);
     }
 
     @Override
