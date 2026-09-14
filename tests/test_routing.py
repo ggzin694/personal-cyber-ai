@@ -26,7 +26,14 @@ class RoutingTests(unittest.TestCase):
         self.assertTrue(server.needs_approval(server.agent_by_id("central"), "publicar relatório"))
         self.assertFalse(server.needs_approval(server.agent_by_id("code_guard"), "explique este bug"))
 
+    def test_global_prefix_is_normalized(self):
+        command, prefixed = server.normalize_command("• revise este código")
+        self.assertEqual(command, "revise este código")
+        self.assertTrue(prefixed)
+        command, prefixed = server.normalize_command("pesquise este domínio")
+        self.assertEqual(command, "pesquise este domínio")
+        self.assertFalse(prefixed)
+
 
 if __name__ == "__main__":
     unittest.main()
-
