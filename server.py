@@ -75,6 +75,23 @@ def normalize_command(message: str) -> tuple[str, bool]:
         return text[len(COMMAND_PREFIX):].strip(), True
     return text, False
 
+def message_triage(command: str) -> str:
+    content = command.split(":", 1)[1].strip() if ":" in command else ""
+    text = content.casefold()
+    signals = []
+    if any(word in text for word in ("agora", "urgente", "imediatamente", "hoje", "última chance", "bloquead")):
+        signals.append("urgência ou ameaça de bloqueio")
+    if any(word in text for word in ("senha", "password", "código", "codigo", "token", "cpf", "cartão", "cartao")):
+        signals.append("pedido ou referência a dado sensível")
+    if any(word in text for word in ("http://", "https://", "www.", "clique", "acesse", "link")):
+        signals.append("link ou instrução para acessar endereço")
+    if any(word in text for word in ("prêmio", "premio", "ganhou", "dinheiro fácil", "dinheiro facil", "pix")):
+        signals.append("promessa incomum ou vantagem financeira")
+    found = "; ".join(signals) if signals else "nenhum sinal automático suficiente no trecho enviado"
+    if content:
+        return ("Triagem local de mensagem\n\nSinais encontrados: " + found + ".\n\nNível preliminar: suspeito; confirme o remetente por um canal oficial independente.\n\nPróximo passo seguro: sem clicar, não responda, não informe senha ou código e não baixe anexos. Se a mensagem alegar bloqueio, abra o aplicativo oficial manualmente. Nenhuma ação externa foi executada.")
+    return "Triagem local de mensagem: cole o texto sem clicar em links; verificarei urgência artificial, pedido de senha ou código, remetente, promessa incomum e próximos passos seguros."
+
 def quick_reply(message: str) -> str | None:
     command = message.casefold().strip()
     if command in ("ajuda", "comandos", "menu"):
@@ -83,7 +100,7 @@ def quick_reply(message: str) -> str | None:
         return "Agentes disponíveis: CENTRAL, VIRUS_GUARD, THREAT_ANALYST, WEB_SCOUT, CODE_GUARD, FILE_GUARD e ACTION_AGENT."
     if command in ("status", "verificar status"):
         return "Status local: Personal Cyber AI ativo; detecção automática de código habilitada; ações externas continuam exigindo aprovação humana."
-    return ("Triagem local de link: envie o endereço sem abrir; verificarei domínio, sinais de phishing e próximos passos seguros." if command == "revisar link" else "Triagem local de arquivo: envie o arquivo sem executar; verificarei tipo, nome, extensão, sinais de risco e próximos passos seguros." if command == "revisar arquivo" else "Triagem local de mensagem: cole o texto sem clicar em links; verificarei urgência artificial, pedido de senha ou código, remetente, promessa incomum e próximos passos seguros." if command.startswith("revisar mensagem") or command.startswith("mensagem suspeita") else None)
+    return ("Triagem local de link: envie o endereço sem abrir; verificarei domínio, sinais de phishing e próximos passos seguros." if command == "revisar link" else "Triagem local de arquivo: envie o arquivo sem executar; verificarei tipo, nome, extensão, sinais de risco e próximos passos seguros." if command == "revisar arquivo" else message_triage(command) if command.startswith("revisar mensagem") or command.startswith("mensagem suspeita") else None)
 
 def fallback_reply(message: str, agent: dict, provider_error: str | None = None) -> str:
     """Provide a useful defensive answer even when the language provider is unavailable."""
