@@ -73,7 +73,18 @@ def normalize_command(message: str) -> tuple[str, bool]:
         return text[len(COMMAND_PREFIX):].strip(), True
     return text, False
 
+def quick_reply(message: str) -> str | None:
+    command = message.casefold().strip()
+    if command in ("ajuda", "comandos", "menu"):
+        return "Comandos rápidos: ajuda, agentes, status, revisar link, revisar arquivo, revisar código e plano de ação. Não executo ações externas sem sua aprovação."
+    if command in ("agentes", "listar agentes"):
+        return "Agentes disponíveis: CENTRAL, VIRUS_GUARD, THREAT_ANALYST, WEB_SCOUT, CODE_GUARD, FILE_GUARD e ACTION_AGENT."
+    if command in ("status", "verificar status"):
+        return "Status local: Personal Cyber AI ativo; detecção automática de código habilitada; ações externas continuam exigindo aprovação humana."
+    return None
+
 def fallback_reply(message: str, agent: dict, provider_error: str | None = None) -> str:
+    """Provide a useful defensive answer even when the language provider is unavailable."""
     text = message.casefold()
     provider_note = (
         " A OpenAI está temporariamente indisponível por limite de uso, créditos ou cobrança; esta triagem foi feita localmente."
@@ -192,8 +203,11 @@ class Handler(BaseHTTPRequestHandler):
                 return
             agent = route_message(message)
             requires_approval = needs_approval(agent, message)
-            answer, provider_error = openai_reply(message, agent)
-            answer = answer or fallback_reply(message, agent, provider_error)
+            answer = quick_reply(message)
+            provider_error = None if answer else None
+            if not answer:
+                answer, provider_error = openai_reply(message, agent)
+                answer = answer or fallback_reply(message, agent, provider_error)
             self.send_json({"status": "completed", "agent": {k: v for k, v in agent.items() if k != "keywords"}, "provider": "openai" if provider_error is None and OPENAI_API_KEY else "local_fallback", "provider_error": provider_error, "command_prefix": COMMAND_PREFIX if prefixed else None, "requires_approval": requires_approval, "message": answer})
         except (ValueError, json.JSONDecodeError):
             self.send_json({"error": "invalid_json"}, 400)
