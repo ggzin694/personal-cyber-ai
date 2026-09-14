@@ -208,7 +208,7 @@ class Handler(BaseHTTPRequestHandler):
             if not answer:
                 answer, provider_error = openai_reply(message, agent)
                 answer = answer or fallback_reply(message, agent, provider_error)
-            self.send_json({"status": "completed", "agent": {k: v for k, v in agent.items() if k != "keywords"}, "provider": "openai" if provider_error is None and OPENAI_API_KEY else "local_fallback", "provider_error": provider_error, "command_prefix": COMMAND_PREFIX if prefixed else None, "requires_approval": requires_approval, "message": answer})
+            self.send_json({"status": "completed", "agent": {k: v for k, v in agent.items() if k != "keywords"}, "provider": "openai" if provider_error is None and OPENAI_API_KEY else "local_fallback", "provider_error": provider_error, "command_prefix": COMMAND_PREFIX if prefixed else None, "requires_approval": requires_approval, "message": answer, "report": {"agent": agent["name"], "analysis": "defensiva", "result": "resposta gerada; nenhuma ação externa executada", "next_step": "seguir a orientação e enviar conteúdo somente se quiser análise"}})
         except (ValueError, json.JSONDecodeError):
             self.send_json({"error": "invalid_json"}, 400)
 
