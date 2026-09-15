@@ -37,10 +37,10 @@ public class MainActivity extends android.app.Activity {
 
     private void buildUi() {
         LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(dp(16), dp(14), dp(16), dp(14)); root.setBackgroundColor(bg);
-        TextView header = text("ENERGY-AI  //  VIXER EYE", 12, cyan); root.addView(header, lp(-1, 24));
+        TextView header = text("ENERGY-AI CONSOLE 0.4.0", 18, cyan); header.setTypeface(null, 1); root.addView(header, lp(-1, 32));
         TextView title = text("Central de Conhecimento", 25, Color.WHITE); title.setTypeface(null, 1); root.addView(title, lp(-1, 38));
         TextView sub = text("Planejamento  •  Criação  •  Soluções seguras", 13, Color.rgb(170, 185, 220)); root.addView(sub, lp(-1, 25));
-        VixerEyeView eye = new VixerEyeView(this); root.addView(eye, lp(-1, 132));
+        VixerEyeView eye = new VixerEyeView(this); root.addView(eye, lp(-1, 88));
         TextView online = text("●  NÚCLEO NEURAL ONLINE    ·    ENTRADA SEGURA ATIVA", 11, Color.rgb(126, 235, 190)); online.setGravity(Gravity.CENTER); root.addView(online, lp(-1, 28));
         TextView quickTitle = text("COMANDOS RÁPIDOS", 11, cyan); quickTitle.setPadding(0, dp(8), 0, dp(4)); root.addView(quickTitle, lp(-1, 26));
         String[] quick = {"Alarme", "Humanizar Artigo", "Criar Imagem 8K", "Modelar Espada 3D", "Código Python", "Voz & Áudio"};
